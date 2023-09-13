@@ -1,11 +1,56 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../components/my_button.dart';
 import '../components/my_textfield.dart';
-import '../main.dart';
 
-class RegisterScreen extends StatelessWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+class RegisterScreen extends StatefulWidget {
+  final Function()? onTap;
+
+  const RegisterScreen({super.key, required this.onTap});
+
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPassswordTextController = TextEditingController();
+
+  Future<void> signUp() async {
+    showDialog(
+      context: context,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    if (passwordController.text != confirmPassswordTextController.text) {
+      Navigator.pop(context);
+      displayMessage("Senhas diferentes");
+      return;
+    }
+      try {
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: emailController.text,
+          password: passwordController.text,
+        );
+        if (mounted) Navigator.pop(context);
+      } on FirebaseAuthException catch (e) {
+        Navigator.pop(context);
+        displayMessage(e.code);
+      }
+
+  }
+  void displayMessage(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(message),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,75 +78,29 @@ class RegisterScreen extends StatelessWidget {
               ),
               const SizedBox(height: 25),
               // email textfield
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                child: TextField(
-                  decoration: InputDecoration(
-                      enabledBorder: const OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.grey.shade400),
-                      ),
-                      fillColor: Colors.grey.shade200,
-                      filled: true,
-                      hintStyle: TextStyle(color: Colors.grey[500])),
-                ),
+              MyTextField(
+                controller: emailController,
+                hintText: 'Email',
+                obscureText: false,
               ),
               const SizedBox(height: 10),
               // password textfield
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                child: TextField(
-                  decoration: InputDecoration(
-                      enabledBorder: const OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.grey.shade400),
-                      ),
-                      fillColor: Colors.grey.shade200,
-                      filled: true,
-                      hintStyle: TextStyle(color: Colors.grey[500])),
-                ),
+              MyTextField(
+                controller: passwordController,
+                hintText: 'Password',
+                obscureText: true,
               ),
               const SizedBox(height: 10),
-              // forgot password?
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Forgot Password?',
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
+              MyTextField(
+                controller: confirmPassswordTextController,
+                hintText: 'Confirm Password',
+                obscureText: true,
               ),
-
               const SizedBox(height: 25),
-
               // sign in button
-              GestureDetector(
-                child: Container(
-                  padding: const EdgeInsets.all(25),
-                  margin: const EdgeInsets.symmetric(horizontal: 25),
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      "Sign In",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ),
+              MyButton(
+                onTap: signUp,
+                text: 'Sign Up',
               ),
 
               const SizedBox(height: 50),
@@ -155,16 +154,14 @@ class RegisterScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Not a member?',
+                    'Já tem uma conta?',
                     style: TextStyle(color: Colors.grey[700]),
                   ),
                   const SizedBox(width: 4),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                  GestureDetector(
+                    onTap: widget.onTap,
                     child: const Text(
-                      'Login',
+                      'Entre Agora',
                       style: TextStyle(
                         color: Colors.black,
                         fontWeight: FontWeight.bold,
@@ -179,4 +176,4 @@ class RegisterScreen extends StatelessWidget {
       ),
     );
   }
-  }
+}

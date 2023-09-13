@@ -2,92 +2,49 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../components/my_button.dart';
 import '../components/my_textfield.dart';
-import 'RegisterScreen.dart';
 
 class LoginPage extends StatefulWidget {
-  LoginPage({super.key});
+  final Function()? onTap;
+
+  LoginPage({super.key, required this.onTap});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // text editing controllers
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  final emailTextController = TextEditingController();
+  final passwordTextController = TextEditingController();
 
-  // sign user in method
-  void signUserIn() async {
-    // show loading circle
+  void signIn() async {
     showDialog(
       context: context,
-      builder: (context) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
-      },
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
     );
-
-    // try sign in
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text,
-        password: passwordController.text,
+        email: emailTextController.text,
+        password: passwordTextController.text,
       );
-      // pop the loading circle
-      Navigator.pop(context);
+      if (mounted) Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
-      // pop the loading circle
       Navigator.pop(context);
-      // WRONG EMAIL
-      if (e.code == 'user-not-found') {
-        // show error to user
-        wrongEmailMessage();
-      }
-
-      // WRONG PASSWORD
-      else if (e.code == 'wrong-password') {
-        // show error to user
-        wrongPasswordMessage();
-      }
+      displayMessage(e.code);
     }
   }
 
-  // wrong email message popup
-  void wrongEmailMessage() {
+  void displayMessage(String message) {
     showDialog(
       context: context,
-      builder: (context) {
-        return const AlertDialog(
-          backgroundColor: Colors.deepPurple,
-          title: Center(
-            child: Text(
-              'Incorrect Email',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        );
-      },
+      builder: (context) => AlertDialog(
+        title: Text(message),
+      ),
     );
   }
 
-  // wrong password message popup
-  void wrongPasswordMessage() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return const AlertDialog(
-          backgroundColor: Colors.deepPurple,
-          title: Center(
-            child: Text(
-              'Incorrect Password',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        );
-      },
-    );
-  }
+// text editing controllers
 
   @override
   Widget build(BuildContext context) {
@@ -116,14 +73,14 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 25),
               // email textfield
               MyTextField(
-                controller: emailController,
+                controller: emailTextController,
                 hintText: 'Email',
                 obscureText: false,
               ),
               const SizedBox(height: 10),
               // password textfield
               MyTextField(
-                controller: passwordController,
+                controller: passwordTextController,
                 hintText: 'Password',
                 obscureText: true,
               ),
@@ -146,7 +103,8 @@ class _LoginPageState extends State<LoginPage> {
 
               // sign in button
               MyButton(
-                onTap: signUserIn,
+                onTap: signIn,
+                text: "Login",
               ),
 
               const SizedBox(height: 50),
@@ -184,7 +142,7 @@ class _LoginPageState extends State<LoginPage> {
               // google + apple sign in buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children: [
                   // google button
                   Text('google'),
                   SizedBox(width: 25),
@@ -204,14 +162,8 @@ class _LoginPageState extends State<LoginPage> {
                     style: TextStyle(color: Colors.grey[700]),
                   ),
                   const SizedBox(width: 4),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => RegisterScreen()),
-                      );
-                    },
+                  GestureDetector(
+                    onTap: widget.onTap,
                     child: const Text(
                       'Register now',
                       style: TextStyle(

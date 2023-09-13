@@ -64,9 +64,6 @@ class ProductListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Lista de Produtos'),
-      ),
       body: ListView.builder(
         itemCount: productList.length,
         itemBuilder: (ctx, index) {
